@@ -1,0 +1,6 @@
+notion-client==2.0.0
+python-dotenv==1.0.0
+beautifulsoup4==4.12.2
+email-parser==0.1.10
+schedule==1.2.0
+imap-tools==1.0.0 
