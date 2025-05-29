@@ -1,0 +1,82 @@
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+Send any comments regarding submissions directly to submitter.
+------------------------------------------------------------------------------
+Archives at http://arxiv.org/
+To unsubscribe, e-mail To: cs@arXiv.org, Subject: cancel
+------------------------------------------------------------------------------
+ Submissions to:
+Artificial Intelligence
+Computers and Society
+Computer Science and Game Theory
+Human-Computer Interaction
+Information Theory
+Machine Learning
+Multiagent Systems
+Robotics
+ received from  Tue 27 May 25 18:00:00 GMT  to  Wed 28 May 25 18:00:00 GMT
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+\\
+arXiv:2505.21552
+Date: Mon, 26 May 2025 04:03:59 GMT   (7338kb)
+
+Title: Understanding the learned look-ahead behavior of chess neural networks
+Authors: Diogo Cruz
+Categories: cs.AI cs.LG
+Comments: 40 pages, 47 figures
+\\
+  We investigate the look-ahead capabilities of chess-playing neural networks,
+specifically focusing on the Leela Chess Zero policy network. We build on the
+work of Jenner et al. (2024) by analyzing the model's ability to consider
+future moves and alternative sequences beyond the immediate next move. Our
+findings reveal that the network's look-ahead behavior is highly
+context-dependent, varying significantly based on the specific chess position.
+We demonstrate that the model can process information about board states up to
+seven moves ahead, utilizing similar internal mechanisms across different
+future time steps. Additionally, we provide evidence that the network considers
+multiple possible move sequences rather than focusing on a single line of play.
+These results offer new insights into the emergence of sophisticated look-ahead
+capabilities in neural networks trained on strategic tasks, contributing to our
+understanding of AI reasoning in complex domains. Our work also showcases the
+effectiveness of interpretability techniques in uncovering cognitive-like
+processes in artificial intelligence systems.
+\\ ( https://arxiv.org/abs/2505.21552 ,  7338kb)
+------------------------------------------------------------------------------
+\\
+arXiv:2505.21668
+Date: Tue, 27 May 2025 18:47:33 GMT   (1060kb,D)
+
+Title: R1-Code-Interpreter: Training LLMs to Reason with Code via Supervised
+  and Reinforcement Learning
+Authors: Yongchao Chen, Yueying Liu, Junwei Zhou, Yilun Hao, Jingquan Wang,
+  Yang Zhang, Chuchu Fan
+Categories: cs.AI cs.CL cs.SC
+Comments: 33 pages, 8 figures
+\\
+  Despite advances in reasoning and planning of R1-like models, Large Language
+Models (LLMs) still struggle with tasks requiring precise computation, symbolic
+manipulation, optimization, and algorithmic reasoning, in which textual
+reasoning lacks the rigor of code execution. A key challenge is enabling LLMs
+to decide when to use textual reasoning versus code generation. While OpenAI
+trains models to invoke a Code Interpreter as needed, public research lacks
+guidance on aligning pre-trained LLMs to effectively leverage code and
+generalize across diverse tasks. We present R1-Code-Interpreter, an extension
+of a text-only LLM trained via multi-turn supervised fine-tuning (SFT) and
+reinforcement learning (RL) to autonomously generate multiple code queries
+during step-by-step reasoning. We curate 144 reasoning and planning tasks (107
+for training, 37 for testing), each with over 200 diverse questions. We
+fine-tune Qwen-2.5 models (3B/7B/14B) using various SFT and RL strategies,
+investigating different answer formats, reasoning vs. non-reasoning models,
+cold vs. warm starts, GRPO vs. PPO, and masked vs. unmasked code outputs.
+Unlike prior RL work on narrow domains, we find that Code Interpreter training
+is significantly harder due to high task diversity and expensive code
+execution, highlighting the critical role of the SFT stage. Our final model,
+R1-CI-14B, improves average accuracy on the 37 test tasks from 44.0\% to
+64.1\%, outperforming GPT-4o (text-only: 58.6\%) and approaching GPT-4o with
+Code Interpreter (70.9\%), with the emergent self-checking behavior via code
+generation. Datasets, Codes, and Models are available at
+https://github.com/yongchao98/R1-Code-Interpreter and
+https://huggingface.co/yongchao98.
+\\ ( https://arxiv.org/abs/2505.21668 ,  1060kb)
+------------------------------------------------------------------------------
