@@ -1,8 +1,7 @@
 import os
 import re
 from datetime import datetime
-from typing import Dict, List
-from bs4 import BeautifulSoup
+from typing import Dict, List, Optional
 from notion_client import Client
 from dotenv import load_dotenv
 import email.utils
@@ -12,7 +11,8 @@ load_dotenv()
 
 class ArxivPaper:
     def __init__(self, arxiv_id: str, title: str, authors: str, categories: str, 
-                 abstract: str, url: str, date: str, comments: str = None):
+                 abstract: str, url: str, date: str, comments: Optional[str] = None):
+        """Represents an arXiv paper with metadata"""
         self.arxiv_id = arxiv_id
         self.title = title
         self.authors = authors
@@ -22,12 +22,10 @@ class ArxivPaper:
         self.date = date
         self.comments = comments
 
-    def get_iso_date(self) -> str:
-        """Convert email date format to ISO 8601 format."""
+    def get_iso_date(self) -> Optional[str]:
+        """Convert email date format to ISO 8601 format"""
         try:
-            # Parse the date string using email.utils
             parsed_date = email.utils.parsedate_to_datetime(self.date)
-            # Convert to ISO 8601 format
             return parsed_date.isoformat()
         except Exception as e:
             print(f"Warning: Could not parse date '{self.date}': {str(e)}")
@@ -35,103 +33,46 @@ class ArxivPaper:
 
 class ArxivEmailProcessor:
     def __init__(self):
+        """Initialize Notion client with environment credentials"""
         self.notion = Client(auth=os.getenv("NOTION_TOKEN"))
         self.database_id = os.getenv("NOTION_DATABASE_ID")
 
-    def parse_email_content(self, email_content: str) -> List[ArxivPaper]:
-        """Parse arXiv email content and extract paper information."""
+    def parse_email_content(self, email_content: str, max_papers: Optional[int] = None) -> List[ArxivPaper]:
+        """Parse arXiv email content and extract paper information with max_papers limit"""
         papers = []
-        # 使用更可靠的分隔符分割邮件内容
-        separator = "------------------------------------------------------------------------------"
+        # Use exact separator pattern to split paper entries
+        separator = "-" * 78
         paper_entries = email_content.split(separator)
         
+        paper_count = 0
+        
         for entry in paper_entries:
-            if not entry.strip() or 'To unsubscribe' in entry or 'Archives at' in entry:
+            # Stop processing if max_papers limit reached
+            if max_papers is not None and paper_count >= max_papers:
+                break
+                
+            entry = entry.strip()
+            if not entry:
                 continue
                 
-            # 提取arxiv ID - 更可靠的方法
-            arxiv_id = ""
-            if "arXiv:" in entry:
-                arxiv_start = entry.index("arXiv:") + 6
-                arxiv_end = entry.find("\n", arxiv_start)
-                if arxiv_end == -1:
-                    arxiv_end = len(entry)
-                arxiv_id = entry[arxiv_start:arxiv_end].split()[0].strip()
-            
-            if not arxiv_id:
+            # Extract arXiv ID (supports both old and new formats)
+            arxiv_id_match = re.search(
+                r'arXiv:([\w\-/\.]+)',
+                entry, 
+                re.IGNORECASE
+            )
+            if not arxiv_id_match:
                 continue
                 
-            # 提取标题
-            title = ""
-            if "Title:" in entry:
-                title_start = entry.index("Title:") + 6
-                title_end = entry.find("\n", title_start)
-                if title_end == -1:
-                    title_end = len(entry)
-                title = entry[title_start:title_end].strip()
-            
-            # 提取作者
-            authors = ""
-            if "Authors:" in entry:
-                authors_start = entry.index("Authors:") + 8
-                authors_end = entry.find("\n", authors_start)
-                if authors_end == -1:
-                    authors_end = len(entry)
-                authors = entry[authors_start:authors_end].strip()
-            
-            # 提取分类
-            categories = ""
-            if "Categories:" in entry:
-                cats_start = entry.index("Categories:") + 11
-                cats_end = entry.find("\n", cats_start)
-                if cats_end == -1:
-                    cats_end = len(entry)
-                categories = entry[cats_start:cats_end].strip()
-            
-            # 提取摘要 - 不使用正则表达式
-            abstract = ""
-            # 查找摘要开始位置（在Comments后的\\之后）
-            if "Comments:" in entry and "\\\\" in entry:
-                comments_end = entry.index("Comments:") + len("Comments:")
-                # 找到Comments部分后的第一个\\
-                abstract_start_marker = entry.find("\\\\", comments_end)
-                if abstract_start_marker != -1:
-                    # 移动到摘要内容开始位置（跳过\\和可能的换行）
-                    abstract_start = abstract_start_marker + 2
-                    if abstract_start < len(entry) and entry[abstract_start] == '\n':
-                        abstract_start += 1
-                    
-                    # 查找摘要结束位置（下一个\\之前）
-                    abstract_end_marker = entry.find("\\\\", abstract_start)
-                    if abstract_end_marker != -1:
-                        # 检查结束标记后是否有URL
-                        url_check = entry.find("https://arxiv.org/abs/", abstract_end_marker)
-                        if url_check != -1 and url_check - abstract_end_marker < 20:
-                            abstract = entry[abstract_start:abstract_end_marker].strip()
-            
-            # 提取日期
-            date = ""
-            if "Date:" in entry:
-                date_start = entry.index("Date:") + 5
-                date_end = entry.find("(", date_start)
-                if date_end == -1:
-                    date_end = entry.find("\n", date_start)
-                if date_end == -1:
-                    date_end = len(entry)
-                date = entry[date_start:date_end].strip()
-            
-            # 提取评论
-            comments = None
-            if "Comments:" in entry:
-                comments_start = entry.index("Comments:") + 9
-                comments_end = entry.find("\\\\", comments_start)
-                if comments_end == -1:
-                    comments_end = entry.find("\n", comments_start)
-                if comments_end == -1:
-                    comments_end = len(entry)
-                comments = entry[comments_start:comments_end].strip()
-            
-            # 创建URL
+            # Extract all fields using helper method
+            arxiv_id = arxiv_id_match.group(1)
+            date = self._extract_field(entry, r'Date:\s*([^\n(]+)')
+            title = self._extract_field(entry, r'Title:\s*(.*?)(?=\s*Authors?:)', re.DOTALL)
+            authors = self._extract_field(entry, r'Authors?:\s*(.*?)(?=\s*Categories:)', re.DOTALL)
+            categories = self._extract_field(entry, r'Categories:\s*(.*?)(?=\s*(?:Comments|Abstract|\\|$))', re.DOTALL)
+            comments = self._extract_field(entry, r'Comments:\s*(.*?)(?=\s*(?:Abstract|\\|$))', re.DOTALL)
+            abstract = self._extract_field(entry, r'(?:.*?\\\\\s*){2}(.*?)\\\\', re.DOTALL)            
+            # Create URL
             url = f"https://arxiv.org/abs/{arxiv_id}"
             
             paper = ArxivPaper(
@@ -145,11 +86,17 @@ class ArxivEmailProcessor:
                 comments=comments
             )
             papers.append(paper)
+            paper_count += 1  # Increment counter after successful extraction
             
         return papers
 
+    def _extract_field(self, entry: str, pattern: str, flags=0) -> str:
+        """Helper method to extract field using regex pattern"""
+        match = re.search(pattern, entry, flags)
+        return match.group(1).strip() if match else ""
+
     def add_to_notion(self, paper: ArxivPaper) -> None:
-        """Add a paper to the Notion database."""
+        """Add paper metadata to Notion database"""
         try:
             iso_date = paper.get_iso_date()
             properties = {
@@ -162,10 +109,11 @@ class ArxivEmailProcessor:
                 "Comments": {"rich_text": [{"text": {"content": paper.comments or ""}}]},
             }
             
-            # Only add date if we successfully parsed it
+            # Add date if successfully parsed
             if iso_date:
                 properties["Date"] = {"date": {"start": iso_date}}
             
+            # Create Notion page
             self.notion.pages.create(
                 parent={"database_id": self.database_id},
                 properties=properties
@@ -173,32 +121,35 @@ class ArxivEmailProcessor:
         except Exception as e:
             print(f"Error adding paper {paper.arxiv_id} to Notion: {str(e)}")
 
-    def process_email(self, email_content: str) -> None:
-        """Process email content and add papers to Notion."""
-        papers = self.parse_email_content(email_content)
+    def process_email(self, email_content: str, max_papers: Optional[int] = None) -> None:
+        """Process email content and add papers to Notion with max_papers limit"""
+        papers = self.parse_email_content(email_content, max_papers)
+        print(f"Processing {len(papers)} papers")
         for paper in papers:
             self.add_to_notion(paper)
+        print(f"Successfully processed {len(papers)} papers")
 
 def main():
-    # Example usage
+    """Main entry point for command-line execution"""
     processor = ArxivEmailProcessor()
     
-    # Read email content from file
     import sys
-    if len(sys.argv) != 2:
-        print("Usage: python arxiv_to_notion.py <email_file_path>")
+    if len(sys.argv) < 2:
+        print("Usage: python arxiv_to_notion.py <email_file_path> [max_papers]")
         sys.exit(1)
         
     file_path = sys.argv[1]
+    max_papers = int(sys.argv[2]) if len(sys.argv) > 2 else None
+    
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             email_content = f.read()
-        processor.process_email(email_content)
+        processor.process_email(email_content, max_papers)
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found")
         sys.exit(1)
     except Exception as e:
-        print(f"Error reading file: {str(e)}")
+        print(f"Error processing email: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":
