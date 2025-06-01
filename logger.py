@@ -1,6 +1,9 @@
 """
 Logger module for the arXiv email to Notion system.
 Provides consistent logging functionality across the application.
+
+MIT License
+Copyright (c) 2025
 """
 import os
 import logging

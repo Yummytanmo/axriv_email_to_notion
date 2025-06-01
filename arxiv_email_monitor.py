@@ -1,3 +1,10 @@
+"""
+arXiv Email Monitor
+Automatically monitors email for arXiv daily mailings and processes them.
+
+MIT License
+Copyright (c) 2025
+"""
 import os
 import time
 import schedule

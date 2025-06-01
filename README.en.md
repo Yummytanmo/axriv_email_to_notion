@@ -20,6 +20,7 @@ A tool that automatically processes arXiv email notifications and adds papers to
 - [Logging System](#logging-system)
 - [Troubleshooting](#troubleshooting)
 - [How It Works](#how-it-works)
+- [License](#license)
 
 ### Overview
 
@@ -227,3 +228,7 @@ The application works through two main components:
    - Runs on a schedule every 4 hours
 
 The system uses environment variables for configuration and includes a comprehensive logging system that writes to both the console and log files.
+
+### License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

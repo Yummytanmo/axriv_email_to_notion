@@ -1,3 +1,10 @@
+"""
+arXiv to Notion
+Processes arXiv email content and adds papers to Notion database.
+
+MIT License
+Copyright (c) 2025
+"""
 import os
 import re
 from datetime import datetime
