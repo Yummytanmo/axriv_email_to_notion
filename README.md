@@ -1,185 +1,72 @@
 # arXiv Email to Notion
 
-[English](#english) | [中文](#chinese)
+将 arXiv 邮件通知自动处理并添加论文到 Notion 数据库的工具。
 
-<a name="english"></a>
-# English
+**[English](README.en.md) | [中文](#)**
 
-This tool automatically processes arXiv email notifications and adds papers to a Notion database. It can either process emails manually or monitor your inbox automatically for new arXiv CS daily mailings.
+### 目录
+- [概述](#概述)
+- [功能特点](#功能特点)
+- [设置](#设置)
+  - [前提条件](#前提条件)
+  - [安装](#安装)
+  - [Notion 配置](#notion-配置)
+  - [邮箱配置](#邮箱配置)
+    - [Gmail 设置](#gmail-设置)
+    - [QQ邮箱设置](#qq邮箱设置)
+- [使用方法](#使用方法)
+  - [自动邮件监控](#自动邮件监控)
+  - [手动处理](#手动处理)
+- [日志系统](#日志系统)
+- [常见问题解决](#常见问题解决)
+- [工作原理](#工作原理)
 
-## Setup
+## 概述
 
-1. Create a Notion integration:
-   - Go to https://www.notion.so/my-integrations
-   - Create a new integration
-   - Copy the integration token
+这个工具可以自动处理 arXiv 邮件通知，并将论文信息添加到 Notion 数据库中。它可以手动处理邮件，也可以自动监控收件箱中的 arXiv CS daily mailings。
 
-2. Create a Notion database with the following properties:
-   - Title (title)
-   - Authors (rich text)
-   - Categories (rich text)
-   - Abstract (rich text)
-   - arXiv ID (rich text)
-   - URL (url)
-   - Date (date)
-   - Comments (rich text)
+## 功能特点
 
-3. Share your database with the integration:
-   - Open your database in Notion
-   - Click "Share" and add your integration
-   - Copy the database ID from the URL (it's the part after the workspace name and before the "?")
+- 每4小时自动监控邮件
+- 仅处理未读的 arXiv CS daily mailings
+- 提取论文详细信息，包括：
+  - 标题
+  - 作者
+  - 类别
+  - 摘要
+  - arXiv 编号
+  - URL
+  - 发布日期
+  - 评论（如果有）
+- 自动格式化数据以适配 Notion
+- 支持处理包含多篇论文的邮件
+- 全面的日志系统
+- 完善的邮件获取和 Notion API 调用错误处理
+- 支持多种邮件提供商（Gmail、QQ邮箱等）
 
-4. Install dependencies:
+## 设置
+
+### 前提条件
+
+- Python 3.7 或更高版本
+- Notion 账户
+- 订阅了 arXiv 每日邮件的邮箱账户
+- Gmail 用户：需启用两步验证
+
+### 安装
+
+1. 克隆此仓库：
+```bash
+git clone https://github.com/yourusername/arxiv-email-to-notion.git
+cd arxiv-email-to-notion
+```
+
+2. 安装依赖：
 ```bash
 pip install -r requirements.txt
 ```
 
-5. Configure environment variables:
-```bash
-cp .env.example .env
-```
-Edit `.env` and add your:
-- Notion integration token
-- Notion database ID
-- Email address
-- Email password
-- MAX_PAPERS (optional, limits the number of papers processed each time, default is 10)
-- CONSOLE_LOG_LEVEL (optional, default is INFO)
-- FILE_LOG_LEVEL (optional, default is DEBUG)
-
-## Email Setup
-
-### QQ Mail Setup
-
-If you're using QQ Mail, follow these steps:
-
-1. Enable IMAP service:
-   - Login to your QQ Mail (mail.qq.com)
-   - Go to Settings (设置) -> Accounts (账户)
-   - Find POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV Service
-   - Enable IMAP service
-   - Generate and save the authorization code
-
-2. Configure .env file:
-```
-EMAIL=your_qq_email@qq.com
-EMAIL_PASSWORD=your_authorization_code
-```
-
-Note: The application is already configured to use QQ Mail's IMAP server (imap.qq.com).
-
-### Gmail Setup
-
-If you're using Gmail, follow these steps:
-
-1. Enable 2-Step Verification:
-   - Visit https://myaccount.google.com/security
-   - Click "2-Step Verification"
-   - Follow the setup instructions
-
-2. Generate App Password:
-   - Visit https://myaccount.google.com/security
-   - Find "App passwords" (requires 2-Step Verification to be enabled)
-   - Click "Select app" and choose "Other (Custom name)"
-   - Enter a name (e.g., "ArXiv Notion")
-   - Click "Generate"
-   - Save the 16-digit password
-
-3. Configure .env file:
-```
-EMAIL=your.email@gmail.com
-EMAIL_PASSWORD=your_16_digit_app_password
-IMAP_SERVER=imap.gmail.com
-```
-
-Note: For G Suite/Google Workspace accounts, you may need to:
-1. Visit Google Workspace Admin Console
-2. Go to Security > Basic settings
-3. Enable "Allow users to manage their access to less secure apps"
-
-## Usage
-
-### Automatic Email Monitoring
-
-To automatically monitor your inbox for new arXiv CS daily mailings every 4 hours:
-
-```bash
-python arxiv_email_monitor.py
-```
-
-The script will:
-1. Check your inbox every 4 hours
-2. Process any new unread arXiv CS daily mailing emails
-3. Add the papers to your Notion database
-4. Mark the emails as read
-
-### Logging System
-
-The application includes a comprehensive logging system:
-
-- Log files are stored in the `logs` directory with date-based filenames
-- Logs are rotated (max 10MB per file, keeping 10 backup files)
-- Console logging shows basic information (default: INFO level)
-- File logging includes detailed debug information (default: DEBUG level)
-
-You can configure the log levels in your `.env` file:
-```
-CONSOLE_LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
-FILE_LOG_LEVEL=DEBUG    # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
-```
-
-### Manual Processing
-
-You can also manually process email content:
-
-1. Save your arXiv email content to a file:
-```bash
-cat > arxiv_email.txt
-# Paste email content and press Ctrl+D
-```
-
-2. Process the email:
-```bash
-cat arxiv_email.txt | python arxiv_to_notion.py
-```
-
-## Features
-
-- Automatic email monitoring every 4 hours
-- Processes only unread arXiv CS daily mailings
-- Extracts paper details including:
-  - Title
-  - Authors
-  - Categories
-  - Abstract
-  - arXiv ID
-  - URL
-  - Publication date
-  - Comments (if available)
-- Automatically formats data for Notion
-- Handles multiple papers per email
-- Error handling for both email fetching and Notion API calls
-
-## Troubleshooting
-
-1. Login failures:
-   - Verify app password is correct
-   - Confirm 2-Step Verification is enabled
-   - Check email address in .env file
-
-2. Connection errors:
-   - Check network connection
-   - Verify IMAP settings
-   - Ensure IMAP access is enabled in Gmail settings
-
----
-
-<a name="chinese"></a>
-# 中文
-
-这个工具可以自动处理 arXiv 邮件通知，并将论文信息添加到 Notion 数据库中。它可以手动处理邮件，也可以自动监控收件箱中的 arXiv CS daily mailings。
-
-## 设置
+### Notion 配置
 
 1. 创建 Notion 集成：
    - 访问 https://www.notion.so/my-integrations
@@ -201,12 +88,7 @@ cat arxiv_email.txt | python arxiv_to_notion.py
    - 点击"Share"并添加你的集成
    - 从 URL 中复制数据库 ID（在工作区名称之后，"?"之前的部分）
 
-4. 安装依赖：
-```bash
-pip install -r requirements.txt
-```
-
-5. 配置环境变量：
+4. 配置环境变量：
 ```bash
 cp .env.example .env
 ```
@@ -215,10 +97,13 @@ cp .env.example .env
 - Notion 数据库 ID
 - 邮箱地址
 - 邮箱密码
-- IMAP 服务器地址（例如 Gmail 使用 imap.gmail.com）
 - MAX_PAPERS (可选，限制每次处理的论文数量，默认为10)
+- CONSOLE_LOG_LEVEL (可选，默认为 INFO)
+- FILE_LOG_LEVEL (可选，默认为 DEBUG)
 
-### Gmail 设置
+### 邮箱配置
+
+#### Gmail 设置
 
 如果使用 Gmail，请按以下步骤操作：
 
@@ -247,6 +132,25 @@ IMAP_SERVER=imap.gmail.com
 2. 转到安全性 > 基本设置
 3. 启用"允许用户管理对不太安全应用的访问权限"
 
+#### QQ邮箱设置
+
+如果使用 QQ 邮箱，请按以下步骤操作：
+
+1. 启用 IMAP 服务：
+   - 登录 QQ 邮箱 (mail.qq.com)
+   - 进入设置 -> 账户
+   - 找到 POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV 服务
+   - 开启 IMAP 服务
+   - 生成并保存授权码
+
+2. 配置 .env 文件：
+```
+EMAIL=your_qq_email@qq.com
+EMAIL_PASSWORD=your_authorization_code
+```
+
+注意：应用程序已经配置为使用 QQ 邮箱的 IMAP 服务器 (imap.qq.com)。
+
 ## 使用方法
 
 ### 自动邮件监控
@@ -263,21 +167,6 @@ python arxiv_email_monitor.py
 3. 将论文添加到 Notion 数据库
 4. 将处理过的邮件标记为已读
 
-### 日志系统
-
-应用程序包含一个全面的日志系统：
-
-- 日志文件存储在 `logs` 目录中，使用基于日期的文件名
-- 日志会自动轮换（每个文件最大 10MB，保留 10 个备份文件）
-- 控制台日志显示基本信息（默认：INFO 级别）
-- 文件日志包含详细的调试信息（默认：DEBUG 级别）
-
-您可以在 `.env` 文件中配置日志级别：
-```
-CONSOLE_LOG_LEVEL=INFO  # 选项：DEBUG, INFO, WARNING, ERROR, CRITICAL
-FILE_LOG_LEVEL=DEBUG    # 选项：DEBUG, INFO, WARNING, ERROR, CRITICAL
-```
-
 ### 手动处理
 
 你也可以手动处理邮件内容：
@@ -293,22 +182,20 @@ cat > arxiv_email.txt
 cat arxiv_email.txt | python arxiv_to_notion.py
 ```
 
-## 功能特点
+## 日志系统
 
-- 每4小时自动监控邮件
-- 仅处理未读的 arXiv CS daily mailings
-- 提取论文详细信息，包括：
-  - 标题
-  - 作者
-  - 类别
-  - 摘要
-  - arXiv 编号
-  - URL
-  - 发布日期
-  - 评论（如果有）
-- 自动格式化数据以适配 Notion
-- 支持处理包含多篇论文的邮件
-- 完善的邮件获取和 Notion API 调用错误处理
+应用程序包含一个全面的日志系统：
+
+- 日志文件存储在 `logs` 目录中，使用基于日期的文件名
+- 日志会自动轮换（每个文件最大 10MB，保留 10 个备份文件）
+- 控制台日志显示基本信息（默认：INFO 级别）
+- 文件日志包含详细的调试信息（默认：DEBUG 级别）
+
+您可以在 `.env` 文件中配置日志级别：
+```
+CONSOLE_LOG_LEVEL=INFO  # 选项：DEBUG, INFO, WARNING, ERROR, CRITICAL
+FILE_LOG_LEVEL=DEBUG    # 选项：DEBUG, INFO, WARNING, ERROR, CRITICAL
+```
 
 ## 常见问题解决
 
@@ -320,4 +207,23 @@ cat arxiv_email.txt | python arxiv_to_notion.py
 2. 连接错误：
    - 检查网络连接
    - 验证 IMAP 设置
-   - 确保 Gmail 中已启用 IMAP 访问 
+   - 确保邮箱中已启用 IMAP 访问
+
+## 工作原理
+
+应用程序通过两个主要组件工作：
+
+1. **ArxivEmailProcessor** (`arxiv_to_notion.py`)：
+   - 解析 arXiv 邮件内容
+   - 使用正则表达式提取论文详情
+   - 格式化数据以适配 Notion
+   - 在 Notion 数据库中创建条目
+
+2. **ArxivEmailMonitor** (`arxiv_email_monitor.py`)：
+   - 通过 IMAP 连接到您的邮件服务器
+   - 搜索未读的 arXiv CS daily mailing 邮件
+   - 将邮件内容传递给 ArxivEmailProcessor
+   - 将处理过的邮件标记为已读
+   - 每4小时运行一次计划任务
+
+系统使用环境变量进行配置，并包含一个全面的日志系统，该系统会同时写入控制台和日志文件。
