@@ -5,9 +5,13 @@ from typing import Dict, List, Optional
 from notion_client import Client
 from dotenv import load_dotenv
 import email.utils
+from logger import Logger
 
 # Load environment variables
 load_dotenv()
+
+# Initialize logger
+logger = Logger("arxiv_to_notion").logger
 
 class ArxivPaper:
     def __init__(self, arxiv_id: str, title: str, authors: str, categories: str, 
@@ -28,7 +32,7 @@ class ArxivPaper:
             parsed_date = email.utils.parsedate_to_datetime(self.date)
             return parsed_date.isoformat()
         except Exception as e:
-            print(f"Warning: Could not parse date '{self.date}': {str(e)}")
+            logger.warning(f"Could not parse date '{self.date}': {str(e)}")
             return None
 
 class ArxivEmailProcessor:
@@ -118,16 +122,17 @@ class ArxivEmailProcessor:
                 parent={"database_id": self.database_id},
                 properties=properties
             )
+            logger.debug(f"Added paper {paper.arxiv_id} to Notion successfully")
         except Exception as e:
-            print(f"Error adding paper {paper.arxiv_id} to Notion: {str(e)}")
+            logger.error(f"Error adding paper {paper.arxiv_id} to Notion: {str(e)}", exc_info=True)
 
     def process_email(self, email_content: str, max_papers: Optional[int] = None) -> None:
         """Process email content and add papers to Notion with max_papers limit"""
         papers = self.parse_email_content(email_content, max_papers)
-        print(f"Processing {len(papers)} papers")
+        logger.info(f"Processing {len(papers)} papers")
         for paper in papers:
             self.add_to_notion(paper)
-        print(f"Successfully processed {len(papers)} papers")
+        logger.info(f"Successfully processed {len(papers)} papers")
 
 def main():
     """Main entry point for command-line execution"""
@@ -135,21 +140,23 @@ def main():
     
     import sys
     if len(sys.argv) < 2:
-        print("Usage: python arxiv_to_notion.py <email_file_path> [max_papers]")
+        logger.error("Usage: python arxiv_to_notion.py <email_file_path> [max_papers]")
         sys.exit(1)
         
     file_path = sys.argv[1]
     max_papers = int(sys.argv[2]) if len(sys.argv) > 2 else None
     
     try:
+        logger.info(f"Processing email file: {file_path}")
         with open(file_path, 'r', encoding='utf-8') as f:
             email_content = f.read()
         processor.process_email(email_content, max_papers)
+        logger.info("Email processing completed successfully")
     except FileNotFoundError:
-        print(f"Error: File '{file_path}' not found")
+        logger.error(f"File '{file_path}' not found")
         sys.exit(1)
     except Exception as e:
-        print(f"Error processing email: {str(e)}")
+        logger.exception(f"Error processing email: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -1,1 +1,9 @@
 .env
+
+*.pyc
+/logs
+/__pycache__
+# Ignore Python bytecode files
+*.pyo
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints

@@ -43,7 +43,30 @@ Edit `.env` and add your:
 - Notion database ID
 - Email address
 - Email password
-- IMAP server address (e.g., imap.gmail.com for Gmail)
+- MAX_PAPERS (optional, limits the number of papers processed each time, default is 10)
+- CONSOLE_LOG_LEVEL (optional, default is INFO)
+- FILE_LOG_LEVEL (optional, default is DEBUG)
+
+## Email Setup
+
+### QQ Mail Setup
+
+If you're using QQ Mail, follow these steps:
+
+1. Enable IMAP service:
+   - Login to your QQ Mail (mail.qq.com)
+   - Go to Settings (设置) -> Accounts (账户)
+   - Find POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV Service
+   - Enable IMAP service
+   - Generate and save the authorization code
+
+2. Configure .env file:
+```
+EMAIL=your_qq_email@qq.com
+EMAIL_PASSWORD=your_authorization_code
+```
+
+Note: The application is already configured to use QQ Mail's IMAP server (imap.qq.com).
 
 ### Gmail Setup
 
@@ -89,6 +112,21 @@ The script will:
 2. Process any new unread arXiv CS daily mailing emails
 3. Add the papers to your Notion database
 4. Mark the emails as read
+
+### Logging System
+
+The application includes a comprehensive logging system:
+
+- Log files are stored in the `logs` directory with date-based filenames
+- Logs are rotated (max 10MB per file, keeping 10 backup files)
+- Console logging shows basic information (default: INFO level)
+- File logging includes detailed debug information (default: DEBUG level)
+
+You can configure the log levels in your `.env` file:
+```
+CONSOLE_LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+FILE_LOG_LEVEL=DEBUG    # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+```
 
 ### Manual Processing
 
@@ -178,6 +216,7 @@ cp .env.example .env
 - 邮箱地址
 - 邮箱密码
 - IMAP 服务器地址（例如 Gmail 使用 imap.gmail.com）
+- MAX_PAPERS (可选，限制每次处理的论文数量，默认为10)
 
 ### Gmail 设置
 
@@ -223,6 +262,21 @@ python arxiv_email_monitor.py
 2. 处理所有未读的 arXiv CS daily mailing 邮件
 3. 将论文添加到 Notion 数据库
 4. 将处理过的邮件标记为已读
+
+### 日志系统
+
+应用程序包含一个全面的日志系统：
+
+- 日志文件存储在 `logs` 目录中，使用基于日期的文件名
+- 日志会自动轮换（每个文件最大 10MB，保留 10 个备份文件）
+- 控制台日志显示基本信息（默认：INFO 级别）
+- 文件日志包含详细的调试信息（默认：DEBUG 级别）
+
+您可以在 `.env` 文件中配置日志级别：
+```
+CONSOLE_LOG_LEVEL=INFO  # 选项：DEBUG, INFO, WARNING, ERROR, CRITICAL
+FILE_LOG_LEVEL=DEBUG    # 选项：DEBUG, INFO, WARNING, ERROR, CRITICAL
+```
 
 ### 手动处理
 
